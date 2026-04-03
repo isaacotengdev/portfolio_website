@@ -1,0 +1,246 @@
+---
+title: "Data Cataloguing in AWS"
+description: "AWS Data Cataloguing Cataloguing Data in AWS Using Glue Crawlers: A Practical..."
+date: "2025-12-03"
+tags: ["A", "W", "S", ","]
+published: true
+---
+
+# AWS Data Cataloguing
+
+## Cataloguing Data in AWS Using Glue Crawlers: A Practical Guide for Data Engineers
+
+### Introduction
+
+In modern data engineering, one of the most overlooked but powerful capabilities is data cataloguing. Without a clear understanding of what data exists, where it lives, its schema, and how it changes over time, no ETL architecture can scale. In this guide, I walk through how to catalogue data using AWS Glue Crawlers, and how to structure your metadata layer when working with raw and cleaned datasets stored in Amazon S3.
+
+This tutorial uses a simple CSV file in an S3 raw bucket and walks through how AWS Glue automatically discovers its structure and builds a searchable, query-ready data catalog. You can replicate every step through your AWS Console and include screenshots to transform this into a visual, practical learning resource.
+
+
+
+##  What is Data Cataloguing?
+
+Data cataloguing is the process of creating a structured inventory of all your data assets.
+
+**A good data catalog contains:**
+
+- Dataset name
+- Schema (columns, data types, partitions)
+- Location (e.g., S3 path)
+- Metadata (size, owner, last updated)
+- Tags, classifications, lineage
+
+Think of it as the "index" of your data ecosystem - similar to how a library catalog helps readers find books quickly.
+
+**Why it matters:**
+
+- Makes data discoverable across teams
+- Reduces manual documentation
+- Ensures schema consistency across pipelines
+- Enables data validation and quality checks
+- Fuels self-service analytics
+- Supports governance and compliance
+
+
+
+## Data Cataloguing in ETL Pipelines
+
+ETL pipelines depend heavily on metadata. Before transforming any dataset, the pipeline must understand:
+
+- What columns exist
+- Which data types to enforce
+- What partitions to use
+- What schema evolution has happened
+- How to map raw → cleaned → curated layers
+
+**A strong data catalog ensures that:**
+
+- ETL jobs run reliably
+- Glue/Spark scripts do not break due to schema drift
+- Downstream BI tools (Athena, QuickSight, Superset, Power BI) can read data instantly
+- Data lineage and documentation stay updated
+
+AWS Glue Data Catalog acts as the central metadata store for all your structured and semi-structured data.
+
+
+
+## Architecture Overview
+
+Below is the structure you'll demonstrate in your article:
+
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lw1spq7hh10jj2jmb8at.png)
+
+
+The project walkthrough will show how Glue Crawlers:
+
+- Scan an S3 bucket
+- Detect the schema (headers, types, formatting)
+- Generate metadata
+- Store the metadata as a table in the Data Catalog
+
+This metadata is then queryable through Amazon Athena, interoperable with Glue ETL Jobs, and usable by analytics tools.
+
+## Understanding Amazon S3, AWS Glue Crawler, and the Glue Data Catalog
+
+### **Amazon S3 (Simple Storage Service)**
+Amazon S3 is a fully managed object storage service that allows you to store any type of data at scale—CSV files, logs, JSON, Parquet, images, and more.  
+It is highly durable, cost-effective, and integrates seamlessly with AWS analytics services. In most modern data engineering architectures (including the Medallion architecture), S3 serves as the **landing**, **raw**, and **processed** layers where data is ingested and stored before further transformation.
+
+### **AWS Glue Crawler**
+An AWS Glue Crawler is an automated metadata discovery tool that scans data stored in Amazon S3 and other sources.  
+When the crawler runs, it:
+- Reads the file structure and content  
+- Detects the data format (CSV, JSON, Parquet, etc.)  
+- Infers column names and data types  
+- Identifies partitions  
+- Classifies datasets using built-in or custom classifiers  
+
+The crawler then automatically creates or updates table metadata without you having to define schemas manually.
+
+### **AWS Glue Data Catalog**
+The Glue Data Catalog is a centralized metadata repository for all your datasets within AWS.  
+It stores:
+- Table definitions  
+- Schema information  
+- Partition details  
+- Metadata used by analytics services  
+
+When the Glue Crawler finishes scanning an S3 bucket, it writes the discovered schema and table information into the Glue Data Catalog.  
+This metadata can then be queried by services such as **Athena**, **EMR**, **Redshift Spectrum**, and **AWS Glue ETL** jobs.
+
+In short, the workflow is:
+**S3 → Glue Crawler scans files → Schema is inferred → Metadata is stored in Glue Data Catalog → Data becomes queryable.**
+
+
+## Step-by-Step Workflow
+
+Below is the structure you'll follow in your Medium/LinkedIn article when documenting your implementation with screenshots.
+
+### 1. Upload Your CSV File to Amazon S3
+
+- Create an S3 bucket named: `medallion-orders-2025-12-17`  **(Replace with your bucket name)**
+
+```bash
+# Create an S3 bucket (basic settings)
+aws s3api create-bucket --bucket medallion-orders-2025-12-17 --region us-east-1
+```
+
+- Upload your sample CSV file (e.g., `orders.csv`)  
+```bash
+# Upload the CSV file to the bucket
+aws s3 cp orders.csv s3://medallion-orders-2025-12-17/
+```
+
+```bash
+# Upload to a folder (prefix)
+aws s3 cp orders.csv s3://medallion-orders-2025-12-17/raw/orders.csv
+```
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/yx9aub8z7kirkgq7wdho.png)
+
+### 2. Create a Glue Database
+
+In the Glue Console:
+
+- Go to **Data Catalog → Databases**
+
+- Click **Add database**
+
+  
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/7j4o3d5q4oa8tjf6am2y.png)
+
+
+- Name it `orders_db` and click on **Create database**
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/2372n1fjh6bi8wevi2yz.png)
+
+
+### 3. Create an AWS Glue Crawler
+
+- Navigate to **Glue → Crawlers**
+- Click on **Create crawler**
+- Provide a name (e.g., `orders_crawler`) and click **Next**
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/wv9ga3mf5zsfcipni7cs.png)
+- Click on  **Add a data source**
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/0ok62gctstg18gh54yfu.png)
+- Choose **S3** as the data store and Click on  **Browse S3** to select the S3 bucket
+
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/cslnrj5fahnk538gaj2p.png)
+
+- On the next screen, choose a role (Glue created role or custom IAM role) Click **Next**
+
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fo6m4xj6gqju75ge9aey.png)
+- Select your database. For Crawler schedule **On demand** and click **Next**  then **Create crawler**.
+
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/obqjprz89rdy2up1okx5.png)
+- **Run the crawler** and wait until status shows **complete**
+
+
+### 4. Run the Crawler & Generate Metadata
+
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/mbvem33g2jj3q5prcb2r.png)
+
+Once the crawler completes:
+
+- It will create a table inside your Glue Data Catalog database
+- Open the table to view:
+  - Columns
+  - Data types
+  - S3 location
+  - Classification (csv)
+
+
+
+### 5. Query the Table Using Amazon Athena
+
+- Open Athena
+- Select your Glue database
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/el6runz52koz3snrnqrq.png)
+
+
+- Run a simple `SELECT * FROM "AwsDataCatalog"."orders_db"."medallion_orders_2025_12_17" limit 10;` Repalce tablename with your table
+
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ltx61p14er5h5sq9exj8.png)
+
+
+
+## Final Outcome
+
+After completing the steps, you will have:
+
+- A fully indexed representation of your raw data
+- A searchable table in Glue Data Catalog
+- A metadata-driven foundation for ETL jobs
+- A structure ready for transformation into a cleaned bucket and eventually a curated analytics layer
+
+This sets the stage for my next article:
+
+**"Building ETL pipelines using Glue ETL Jobs and writing cleaned data back into S3."**
+
+
+
+## Conclusion
+
+Data cataloguing is a foundational step in any scalable data engineering architecture. AWS Glue Crawlers make it easy to automate metadata extraction from raw data sources, reduce manual schema definition, and keep your ETL pipelines schema-aware and resilient.
+
+By the end of this project, you'll have a practical, AWS-native setup that you can build on for data cleaning, transformations, and analytical workloads.

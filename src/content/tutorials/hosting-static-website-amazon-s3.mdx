@@ -1,0 +1,121 @@
+---
+title: "Hosting a static website using Amazon S3"
+description: "Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading..."
+date: "2023-01-19"
+tags: ["P", "R", "O", "D"]
+published: true
+---
+
+**Amazon Simple Storage Service (Amazon S3)** is an object storage service that offers industry-leading scalability, data availability, security, and performance.Using Amazon S3 you can store and retrieve any amount of data from anywhere and can store any type of data.To store data in Amazon S3, you work with resources known as buckets and objects. A bucket is a container for objects. An object is any type of file and any metadata that describes that file.
+In this tutorial, we would use Amazon S3 bucket to host a static website. In Amazon S3, the static website can sustain any conceivable level of traffic, at a very modest cost, without the need to set up, monitor, scale, or manage any servers. All the files of the website are upload to Amazon S3. We can configure any of our s3 buckets as a static website.
+When an S3 bucket is configured for website hosting, the bucket is assigned a URL. When request is made to this URL, Amazon S3 returns the HTML file, known as the root object, that has been set for the bucket.
+To enable public access to the bucket or objects, permissions must be configured that allows access. To configure these permissions, we would use BUCKET POLICY which is is a resource-based AWS Identity and Access Management (IAM) policy which grants other AWS accounts or IAM users access permissions for the bucket and the objects in it.
+
+**We would follow the following steps to complete the tutorial.**
+***Let’s go to the AWS management console and search for Amazon S3.***
+
+Let’s go to the **AWS management console** and search for **Amazon S3**. 
+
+
+![AWS console](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/qeasjpbt9nq89uskko1i.PNG)
+
+In the **bucket section** click on **Create bucket**
+
+
+![create bucket](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b262iiu55xamzox1p71y.PNG)
+In the **General configuration** section, enter a **unique name** for the bucket and choose a region preferably a region closer to your location .In this tutorial, I have typed **'tutorotengcode123'** as my bucket name. **Note**: This name must be unique among all created buckets on the AWS platform.
+
+
+
+![bucket name](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/nkvruq7xtbvtaikacq6v.PNG)
+
+In the **Object Ownership** section, choose **ACLs enabled** and **Object writer**. By selecting **ACLS enabled**, we have allowed objects in this bucket to be owned by other AWS accounts and access specified using ACLs. By selecting Object writer, we have allowed an object writer to remain the object owner.
+
+
+![Object ownership](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/j3l8gofffxlsddcjuib0.PNG)
+
+
+In the **Block Public Access settings** for this bucket, deselect the **Block all public access option** and choose to select the **check box** to acknowledge the current settings of turning off **block all public access**.
+
+![block access](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/kouv4psybtleiehz4kg9.PNG)
+
+Note: **Bucket**, **access points**, and **objects** by default do not allow public access. By deselect Block all public access and accepting to acknowledge the current settings we are allowing public access.
+We would scroll down and keep the **default settings** for **encryption** and click on **Create bucket**.
+
+
+![defaults keep](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9ucgw380t434pp14toiz.PNG)
+We can view details of the created bucket by clicking on the **View details** in the **Success Alert**.
+
+
+![Success Alert](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/f93azgx63uokpgyoldi9.PNG)
+
+Click on the name of the created bucket and in the **Objects tab**, click on the **Upload** button.
+
+
+![Upload](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/29do3euegbhadhk3cdb5.PNG)
+
+In the **Files and folders** section, click on **Add files**. 
+At this stage we can add all the files and folders that make up our static website. Select all the **files and folders** and click on **Upload**.
+
+
+![addfiles](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/97x00tycuy03v82c24yv.PNG)
+
+After a successful upload of files, we should receive in the Success alert **Upload succeeded**.
+Let’s review the upload files. 
+
+
+![review](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/m8g7mi95kmybg1ca97sk.PNG)
+
+Click on the **Properties Tab** and scroll down to the **Static website hosting** section. 
+**Static website hosting** is disabled by **default**. 
+
+![disabled](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8edgpl2qw6hmd9xoqtfk.PNG)
+
+Click on **Edit**. 
+
+
+![Edit](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/k0cuk6vpjnruubqlgyii.png)
+For **Static website hosting**, select **enable** ,for **Hosting type** select **Host a static website**, and for **index document** enter **index.html**.
+
+
+![index](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ug7njqfye8u6pyc903s0.png)
+
+Click on the **Permissions tab**, make sure **Block all public access** is set to **Off**.
+
+
+![off](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/6cce831uls855npuar4f.PNG)
+
+Click on **Edit** in the **Bucket policy section**. Under the **Bucket ARN**, Click to copy the **bucket’s ARN**. In the **Policy editor**, copy and paste the bucket policy below by replacing the **“Your_Bucket_ARN”** with your bucket’s ARN.
+
+```
+{
+  "Id": "MyPolicy",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3GetObjectAllow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "Your_Bucket_ARN/*",
+      "Principal": "*"
+    }
+  ]
+}
+```
+
+
+
+![grant](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9412zhb9r0ytiyxgix22.png)
+The policy grants the `s3: GetObject` permission to any public anonymous user. Now click on **Save changes**. 
+
+Let’s go back to the **Properties Tab** and scroll down to **Static website hosting** section. In the **Static website hosting section**, under **Hosting type**, check to ensure that **bucket hosting** is set. Under the **Bucket website endpoint**, click the copy icon to copy the **Bucket website endpoint**.
+
+![congratulations](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/up3w1b66sptczp1c02p6.PNG)
+
+Paste the copied bucket website endpoint in your browser’s **address bar** and press **enter**. 
+
+
+![final](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/y02agafsdq4jlihgu5zx.PNG)
+**_Congratulations!!!!!!!!!!!!!!, we have successfully hosted a static website on Amazon S3._**
